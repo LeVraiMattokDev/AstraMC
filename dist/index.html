@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+  <meta name="theme-color" content="#253a32"><meta name="description" content="AstraMC, un monde de blocs à explorer et à construire. Un jeu de survie et de construction 3D dans votre navigateur.">
+  <title>AstraMC — Terres sauvages</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%239cb86a' d='m16 2 14 7-14 7L2 9z'/%3E%3Cpath fill='%23547b44' d='m2 9 14 7v14L2 23z'/%3E%3Cpath fill='%23354f36' d='m16 16 14-7v14l-14 7z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css"><link rel="stylesheet" href="./survival.css"><link rel="stylesheet" href="./expedition.css">
+</head>
+<body>
+  <main id="game" aria-label="Monde AstraMC">
+    <canvas id="world" aria-label="Jeu 3D. Cliquez sur Jouer pour commencer."></canvas>
+    <div id="underwater"></div><div id="damage-flash"></div><div class="vignette"></div>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="AstraMC — menu"><span class="brand-mark">A</span><span>ASTRA<span class="brand-light">MC</span></span><small>SURVIE</small></a>
+      <div class="world-info"><span class="sun-symbol">☀</span><span id="biome">Les terres d’Astra</span><span class="separator"></span><span id="coordinates">0 / 0 / 0</span></div>
+      <button id="menu-button" class="icon-button" aria-label="Ouvrir le menu" title="Menu (Échap)">Ⅱ</button>
+    </header>
+    <div id="crosshair" aria-hidden="true"></div>
+    <div id="target-info"></div><div id="fishing-status" hidden></div><div id="mining-progress" hidden><span></span></div><div id="objective" hidden></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <section id="start-screen" class="overlay">
+      <div class="start-content">
+        <div class="eyebrow"><span></span> EXPÉDITION 03 · TERRES SAUVAGES</div>
+        <h1>ASTRA<span>MC</span><i>UN MONDE QUI RESPIRE</i></h1>
+        <p class="intro">Laissez le monde vous surprendre.</p>
+        <div class="mode-picker" aria-label="Mode de jeu"><button id="choose-survival" aria-pressed="true">Survie</button><button id="choose-creative" aria-pressed="false">Créatif</button></div><p id="mode-description">Récoltez, fabriquez et préparez-vous pour la nuit.</p><button id="play-button" class="primary-button"><span id="play-label">Entrer dans le monde</span><span aria-hidden="true">↗</span></button>
+        <div class="start-meta"><span id="world-generation-label">Biomes & grottes</span><span>Partie solo</span><span>Sauvegarde automatique</span></div>
+      </div>
+      <aside class="guide-card">
+        <div class="guide-heading"><span>LE CARNET DU VOYAGEUR</span><span>03 / EXPLORATION</span></div><p class="guide-intro">Prenez le temps.<br>Suivez une rivière, allumez un feu,<br>attendez que la pluie passe.</p>
+        <div class="guide-row"><span>Se déplacer</span><div><kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd><small>/ WASD</small></div></div>
+        <div class="guide-row"><span>Sauter</span><kbd class="wide">ESPACE</kbd></div>
+        <div class="guide-row"><span>Miner / poser</span><span class="key-text">Maintenir gauche / droit</span></div>
+        <div class="guide-row"><span>Fabriquer</span><div><kbd>E</kbd><small>inventaire</small></div></div><div class="guide-row"><span>Carte & carnet</span><kbd>M</kbd></div><div class="guide-row"><span>Mode photo</span><kbd>P</kbd></div>
+        <div class="guide-row"><span>Utiliser / manger</span><span class="key-text">Clic droit</span></div>
+        <div class="guide-foot">Souris : regarder · Maj : courir · R : boire · Échap : pause. Si la souris est libre, glissez pour regarder et maintenez X pour miner.</div>
+      </aside>
+      <footer class="start-footer"><span>CONSTRUIRE. EXPLORER. HABITER LE MONDE.</span><span id="save-hint">Sauvegarde locale automatique <span class="little-square"></span></span></footer>
+    </section>
+    <section id="pause-screen" class="overlay modal-overlay" hidden>
+      <div class="panel pause-panel">
+        <div class="eyebrow">PRENEZ VOTRE TEMPS</div><h2>Une petite pause.</h2><p>Votre monde vous attend.</p>
+        <button id="resume-button" class="primary-button">Reprendre le jeu <span>↗</span></button>
+        <div class="pause-links"><button id="inventory-button" class="secondary-button">Inventaire <kbd>E</kbd></button><button id="menu-map" class="secondary-button">Carnet de voyage <kbd>M</kbd></button></div>
+        <div class="settings"><label>Mode de jeu <select id="game-mode"><option value="survival">Survie</option><option value="creative">Créatif</option></select></label>
+          <label>Sensibilité <input id="sensitivity" type="range" min="0.3" max="2" step="0.1" value="1"></label>
+          <label>Distance d’affichage <select id="render-distance"><option value="2">Courte</option><option value="3" selected>Normale</option><option value="4">Lointaine</option><option value="5">Panorama</option></select></label>
+          <label>Qualité graphique <select id="quality"><option value="low">Économe</option><option value="medium">Équilibrée</option><option value="high" selected>Élevée</option></select></label>
+          <label>Champ de vision <input id="field-of-view" type="range" min="55" max="95" value="72"></label>
+          <label>Météo <select id="weather-control"><option value="auto">Naturelle</option><option value="clear">Ciel dégagé</option><option value="rain">Pluie</option><option value="storm">Orage</option><option value="snow">Neige</option></select></label>
+          <label>Heure du jour <input id="time-control" type="range" min="0" max="0.999" step="0.005" value="0.17"></label>
+          <label>Ambiance sonore <input id="sound" type="checkbox" checked></label><label>Volume <input id="volume" type="range" min="0" max="1" step="0.05" value="0.55"></label>
+        </div>
+        <div class="pause-actions"><button id="respawn-button">Revenir au départ</button><button id="new-world-button">Nouveau monde</button></div>
+        <div id="save-status" class="save-status">Enregistré dans ce navigateur</div>
+        <p class="pause-help">ZQSD / WASD · Espace : sauter · Maj : courir<br>Créatif : F pour voler · Espace / Maj : monter / descendre<br>Clic gauche : casser · Clic droit : poser · E : inventaire</p>
+      </div>
+    </section>
+    <section id="inventory-screen" class="overlay modal-overlay" hidden>
+      <div class="panel inventory-panel">
+        <div class="panel-heading"><div><div class="eyebrow" id="inventory-mode-label">SURVIE</div><h2>Inventaire & fabrication</h2></div><button id="close-inventory" class="close-button" aria-label="Fermer l’inventaire">×</button></div>
+        <div class="inventory-layout">
+          <div class="backpack"><div class="inventory-section-heading"><span id="bag-title">Votre sac</span><span id="bag-info">Choisir → emplacement actif</span></div><div id="inventory-grid"></div><p id="inventory-empty" hidden>Votre sac est vide. Maintenez le clic gauche sur un tronc pour récolter du bois.</p></div>
+          <div class="crafting"><div class="inventory-section-heading"><span>Recettes</span><span id="station-label">À la main</span></div><div id="recipe-list"></div><div id="recipe-detail"><p>Sélectionnez une recette.</p></div></div>
+        </div>
+        <div class="inventory-footer"><span id="inventory-help">Cliquez un objet pour l’équiper. 1–9 : emplacement.</span><kbd>E</kbd></div>
+      </div>
+    </section>
+    <section id="death-screen" class="overlay modal-overlay" hidden><div class="panel death-panel"><div class="eyebrow">FIN DE L’EXPÉDITION</div><h2>Vous êtes mort.</h2><p id="death-reason"></p><p>Vos objets sont tombés au sol. Retournez les chercher.</p><button id="death-respawn" class="primary-button">Réapparaître <span>↗</span></button></div></section>
+    <section id="new-world-screen" class="overlay modal-overlay" hidden>
+      <form id="new-world-form" class="panel pause-panel">
+        <div class="eyebrow">NOUVEAU DÉPART</div><h2>Un autre horizon.</h2>
+        <p>Le monde actuel et ses constructions seront remplacés dans ce navigateur.</p>
+        <label class="seed-label" for="new-game-mode">Mode de jeu</label><select id="new-game-mode"><option value="survival">Survie</option><option value="creative">Créatif</option></select><label class="seed-label" for="seed">Graine du monde</label><input id="seed" type="text" maxlength="48" placeholder="Un mot, un nombre, une idée…" autocomplete="off">
+        <button type="submit" class="primary-button">Créer ce monde <span>↗</span></button><button id="cancel-new" type="button" class="secondary-button">Garder mon monde</button>
+      </form>
+    </section>
+    <section id="map-screen" class="overlay modal-overlay" hidden><div class="panel map-panel"><div class="panel-heading"><div><div class="eyebrow">VOTRE EXPÉDITION</div><h2>Carnet de voyage</h2></div><button id="close-map" class="close-button" aria-label="Fermer la carte">×</button></div><div class="map-layout"><div class="map-wrap"><canvas id="world-map" width="480" height="420" tabindex="0" role="img" aria-label="Carte des terres explorées. Cliquez pour placer un repère, Entrée pour marquer votre position."></canvas><p id="map-position"></p><div class="map-caption"><span>Cliquez sur la carte pour placer un repère.</span><button id="clear-waypoint">Effacer le repère</button><button id="travel-waypoint" hidden>Rejoindre · créatif</button></div></div><aside class="journal"><div class="journal-stats"><div><strong id="journal-distance">0 m</strong><span>PARCOURUS</span></div><div><strong id="journal-places">0</strong><span>DÉCOUVERTES</span></div><div><strong id="journal-fish">0</strong><span>POISSONS</span></div><div><strong id="journal-camps">0</strong><span>FEUX ALLUMÉS</span></div></div><h3>Les lieux qui restent</h3><div id="journal-sites"></div><p class="journal-note">Une lanterne, quelques provisions.<br>Le reste est à découvrir.</p></aside></div></div></section>
+    <section id="chest-screen" class="overlay modal-overlay" hidden><div class="panel chest-panel"><div class="panel-heading"><div><div class="eyebrow">VOTRE CAMP</div><h2>Mettre de côté</h2></div><button id="close-chest" class="close-button" aria-label="Fermer le coffre">×</button></div><p>Clic : transférer un objet · Maj + clic : toute la pile</p><div class="chest-columns"><section><h3>Votre sac</h3><div id="chest-bag" class="chest-grid"></div></section><section><h3>Dans le coffre</h3><div id="chest-storage" class="chest-grid"></div></section></div></div></section>
+    <div id="hud" hidden>
+      <div id="expedition-compass"><span class="compass-mark">⌁</span><span id="compass-bearing">N 000°</span><span id="waypoint-hint" hidden></span></div>
+      <div id="weather-card"><span id="weather-icon">☀</span><div><span id="weather-label">Ciel dégagé</span><small><span id="world-clock">10:00</span><span class="weather-dot">·</span><span id="temperature-label">18°</span></small></div></div>
+      <button id="map-button" aria-label="Ouvrir la carte et le carnet de voyage"><canvas id="minimap" width="144" height="144"></canvas><span>CARTE <kbd>M</kbd></span></button>
+      <div id="expedition-vitals"><div id="stamina-meter" class="expedition-meter"><span>ENDURANCE</span><div><i id="stamina-bar"></i></div><b id="stamina-value">100</b></div><div id="hydration-meter" class="expedition-meter"><span>HYDRATATION</span><div><i id="hydration-bar"></i></div><b id="hydration-value">100</b></div><div id="warmth-meter" class="expedition-meter"><span>CHALEUR</span><div><i id="warmth-bar"></i></div><b id="warmth-value">100</b></div><small id="shelter-state">En plein air</small></div>
+      <div class="bottom-hint"><span><kbd>E</kbd> Fabriquer</span><span><kbd>R</kbd> Boire</span><span><kbd>P</kbd> Photo</span><span><kbd>F</kbd> <span id="fly-label">Voler</span></span></div>
+      <div id="survival-stats"><div id="vitals"><div id="hearts" aria-label="Vie"></div><div id="hunger" aria-label="Faim"></div></div><div id="oxygen" hidden></div><div id="xp-bar"><span></span><b id="xp-level">0</b></div></div><div id="selected-name">Mains nues</div><div id="hotbar" role="toolbar" aria-label="Barre de blocs"></div>
+      <div class="bottom-right"><span id="movement-mode">AU SOL</span><span id="fps">60 FPS</span></div>
+    </div>
+    <div id="touch-controls" hidden>
+      <div class="touch-pad"><button data-move="KeyW" aria-label="Avancer">↑</button><button data-move="KeyA" aria-label="Gauche">←</button><button data-move="KeyS" aria-label="Reculer">↓</button><button data-move="KeyD" aria-label="Droite">→</button></div>
+      <div class="touch-actions"><button id="touch-jump">Saut</button><button id="touch-break">Miner</button><button id="touch-place">Poser</button><button id="touch-inventory">Sac</button><button id="touch-fly">Vol</button><button id="touch-down">Descendre</button></div>
+    </div>
+    <div id="loading"><span class="loading-cube"></span><span>Le monde prend forme…</span></div>
+    <div id="error-screen" class="overlay modal-overlay" hidden><div class="panel"><h2>Le monde ne peut pas s’afficher.</h2><p id="error-message"></p><button onclick="location.reload()" class="primary-button">Réessayer</button></div></div>
+  </main>
+  <script type="module" src="./game.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Installed packages and local runtime files
+node_modules/
+.sites-runtime/
+*.log
+
+# Local backups and private configuration
+backups/
+.env
+.env.*
+!.env.example
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

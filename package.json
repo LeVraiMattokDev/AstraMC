@@ -1,0 +1,14 @@
+{
+  "name": "astramc",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "description": "AstraMC — Terres sauvages : construction, survie et exploration dans le navigateur.",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "three": "0.180.0"
+  }
+}
