@@ -1,4 +1,16 @@
-# GPTAstra
+# AstraMC
+
+Hello everyone!
+
+This entire repo was made by GPT-6 Astra. It used around 18% of my quota on a Pro 5x account and consumed roughly 40 million tokens.
+What was the point of that?
+First of all, I needed to use up some of my quota before the free reset anyway xD.
+But more importantly, ever since the model came out, I've seen people complaining on X, Reddit, and various forums that the limits melt like snowflakes in summer.
+And I'm sorry, but I just can't agree with that.
+Those 40 million tokens would cost roughly $70 through the API, while my plan costs me $100/month. And that was only about 18% of my quota.
+Sure, the limits might be lower than they were before, and I understand why some people are disappointed. But complaining that the limits are ridiculously small when you're potentially getting more usage value than what you're actually paying for feels a bit crazy to me.
+Anyway, this repo was basically my very scientific way of testing that theory xD.
+
 
 **Explore, build, and survive in a living voxel wilderness — directly in your browser.**
 
